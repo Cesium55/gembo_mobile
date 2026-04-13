@@ -8,10 +8,17 @@
     "scheme": "mobilegembo",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "Allow $(PRODUCT_NAME) to use speech recognition.",
+        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use the microphone."
+      },
+      "bundleIdentifier": "com.makenti22.gembo-english"
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -19,7 +26,11 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.makenti22.gembo_english"
     },
     "web": {
       "output": "static",
@@ -38,11 +49,26 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-speech-recognition"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "auth": {
+        "serverUrl": "https://english.gembos.ru/auth"
+      },
+      "ai_server": "https://english.gembos.ru/ai",
+      "googleSignIn": {
+        "webClientID": "340242411974-2531pdhfttacr5h2oge0t3q9i93tsrrd",
+        "androidClientID": "340242411974-9ah15pg5vavqvfji7p2i387j7d42e8cv"
+      },
+      "router": {},
+      "eas": {
+        "projectId": "27a3f0f9-154b-4496-bf44-5d271ded8394"
+      }
     }
   }
 }

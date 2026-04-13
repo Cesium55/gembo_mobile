@@ -1,24 +1,110 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { ThemeProvider } from '@react-navigation/native';
+import { Stack, usePathname, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
+import { useEffect } from 'react';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAuth, AuthProvider } from '@/providers/auth-provider';
+import { AppThemeProvider, useAppTheme } from '@/providers/theme-provider';
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+function RootNavigator() {
+  const { isDark, navigationTheme, theme } = useAppTheme();
+  const { isAuthenticated, isInitializing } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    if (isInitializing) {
+      return;
+    }
+
+    const isAuthRoute = pathname === '/auth';
+    const isIndexRoute = pathname === '/';
+    const isProtectedRoute = !isAuthRoute && !isIndexRoute;
+
+    if (!isAuthenticated && isProtectedRoute) {
+      router.replace('/auth');
+      return;
+    }
+
+    if (isAuthenticated && (isIndexRoute || isAuthRoute)) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, isInitializing, pathname, router]);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
+    <ThemeProvider value={navigationTheme}>
+      <BottomSheetModalProvider>
+        <View style={[styles.root, { backgroundColor: theme.backgroundColor }]}>
+          <Stack
+            screenOptions={{
+              animation: 'slide_from_right',
+              contentStyle: { backgroundColor: theme.backgroundColor },
+              headerStyle: { backgroundColor: theme.cardColor },
+              headerShadowVisible: false,
+              headerTintColor: theme.textColor,
+              headerTitleStyle: { color: theme.textColor },
+            }}>
+            <Stack.Screen
+              name="index"
+              options={{
+                headerShown: false,
+                contentStyle: { backgroundColor: theme.backgroundColor },
+              }}
+            />
+            <Stack.Screen
+              name="auth"
+              options={{
+                headerShown: false,
+                contentStyle: { backgroundColor: theme.backgroundColor },
+              }}
+            />
+            <Stack.Screen
+              name="(tabs)"
+              options={{
+                headerShown: false,
+                contentStyle: { backgroundColor: theme.backgroundColor },
+              }}
+            />
+            <Stack.Screen
+              name="settings"
+              options={{
+                title: 'Настройки',
+                contentStyle: { backgroundColor: theme.backgroundColor },
+              }}
+            />
+            <Stack.Screen
+              name="chat-room"
+              options={{
+                title: '',
+                contentStyle: { backgroundColor: theme.backgroundColor },
+              }}
+            />
+          </Stack>
+        </View>
+      </BottomSheetModalProvider>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
     </ThemeProvider>
   );
 }
+
+export default function RootLayout() {
+  return (
+    <GestureHandlerRootView style={styles.root}>
+      <AppThemeProvider>
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
+      </AppThemeProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
