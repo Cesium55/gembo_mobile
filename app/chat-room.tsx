@@ -822,7 +822,7 @@ export default function ChatRoomScreen() {
         </SafeAreaView>
       </Animated.View>
 
-      <AppBottomModal isOpen={historyModalOpen} onClose={() => setHistoryModalOpen(false)} title="История чатов">
+      <AppBottomModal isOpen={historyModalOpen} onClose={() => setHistoryModalOpen(false)} title="История чатов" scrollable>
         {isLoadingChatHistory ? (
           <View style={styles.modalCenter}>
             <ActivityIndicator size="small" color={theme.primaryColor} />
@@ -832,12 +832,11 @@ export default function ChatRoomScreen() {
             <AppText style={{ color: '#EF4444', textAlign: 'center' }}>{historyError}</AppText>
           </View>
         ) : (
-          <FlatList
-            data={historyChats}
-            keyExtractor={(item) => String(item.id)}
-            contentContainerStyle={historyChats.length ? styles.historyList : styles.modalCenter}
-            renderItem={({ item }) => (
+          <View style={historyChats.length ? styles.historyList : styles.modalCenter}>
+            {historyChats.length ? (
+              historyChats.map((item) => (
               <Pressable
+                key={item.id}
                 onPress={() => handleHistoryItemPress(item.id)}
                 style={[styles.historyItem, { backgroundColor: theme.backgroundColor, borderColor: theme.borderColor }]}>
                 <View style={styles.historyBody}>
@@ -848,9 +847,11 @@ export default function ChatRoomScreen() {
                 </View>
                 <Ionicons name="chevron-forward" size={18} color={theme.mutedTextColor} />
               </Pressable>
+              ))
+            ) : (
+              <AppText style={{ color: theme.mutedTextColor }}>История чатов пуста</AppText>
             )}
-            ListEmptyComponent={<AppText style={{ color: theme.mutedTextColor }}>История чатов пуста</AppText>}
-          />
+          </View>
         )}
       </AppBottomModal>
 
