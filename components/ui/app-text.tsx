@@ -1,17 +1,22 @@
 import { PropsWithChildren } from 'react';
-import { StyleProp, StyleSheet, Text, TextStyle } from 'react-native';
+import { StyleProp, StyleSheet, Text, TextProps, TextStyle } from 'react-native';
 
 import { useAppTheme } from '@/providers/theme-provider';
 
 type AppTextProps = PropsWithChildren<{
   variant?: 'title' | 'body' | 'caption';
   style?: StyleProp<TextStyle>;
-}>;
+}> &
+  TextProps;
 
-export function AppText({ children, style, variant = 'body' }: AppTextProps) {
+export function AppText({ children, style, variant = 'body', ...textProps }: AppTextProps) {
   const { theme } = useAppTheme();
 
-  return <Text style={[styles.base, styles[variant], { color: theme.textColor }, style]}>{children}</Text>;
+  return (
+    <Text style={[styles.base, styles[variant], { color: theme.textColor }, style]} {...textProps}>
+      {children}
+    </Text>
+  );
 }
 
 const styles = StyleSheet.create({

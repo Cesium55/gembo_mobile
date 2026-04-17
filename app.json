@@ -61,6 +61,12 @@
         "serverUrl": "https://english.gembos.ru/auth"
       },
       "ai_server": "https://english.gembos.ru/ai",
+      "search": {
+        "serverUrl": "https://english.gembos.ru/search"
+      },
+      "books": {
+        "serverUrl": "https://english.gembos.ru/books"
+      },
       "googleSignIn": {
         "webClientID": "340242411974-2531pdhfttacr5h2oge0t3q9i93tsrrd",
         "androidClientID": "340242411974-9ah15pg5vavqvfji7p2i387j7d42e8cv"

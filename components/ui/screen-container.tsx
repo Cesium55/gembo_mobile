@@ -1,15 +1,22 @@
 import { PropsWithChildren } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppTheme } from '@/providers/theme-provider';
 
-export function ScreenContainer({ children }: PropsWithChildren) {
+const DEFAULT_SAFE_AREA_EDGES: readonly Edge[] = ['top', 'left', 'right'];
+
+type ScreenContainerProps = PropsWithChildren<{
+  safeAreaEdges?: readonly Edge[];
+  contentStyle?: StyleProp<ViewStyle>;
+}>;
+
+export function ScreenContainer({ children, safeAreaEdges = DEFAULT_SAFE_AREA_EDGES, contentStyle }: ScreenContainerProps) {
   const { theme } = useAppTheme();
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.backgroundColor }]} edges={['top', 'left', 'right']}>
-      <View style={styles.container}>{children}</View>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.backgroundColor }]} edges={safeAreaEdges}>
+      <View style={[styles.container, contentStyle]}>{children}</View>
     </SafeAreaView>
   );
 }
