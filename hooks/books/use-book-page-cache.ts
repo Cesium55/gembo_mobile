@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const BOOK_PAGE_CACHE_PREFIX = 'book-reader-page:';
 
@@ -22,6 +22,7 @@ function clampPage(page: number, totalPages: number) {
 export function useBookPageCache(bookId: number | null, totalPages: number) {
   const [currentPage, setCurrentPage] = useState(0);
   const [isRestoring, setIsRestoring] = useState(true);
+  const totalPagesRef = useRef(totalPages);
 
   const storageKey = useMemo(() => {
     if (!bookId) {
@@ -30,6 +31,10 @@ export function useBookPageCache(bookId: number | null, totalPages: number) {
 
     return `${BOOK_PAGE_CACHE_PREFIX}${bookId}`;
   }, [bookId]);
+
+  useEffect(() => {
+    totalPagesRef.current = totalPages;
+  }, [totalPages]);
 
   useEffect(() => {
     let isMounted = true;
@@ -50,7 +55,7 @@ export function useBookPageCache(bookId: number | null, totalPages: number) {
         const savedPage = raw ? Number.parseInt(raw, 10) : 0;
 
         if (isMounted) {
-          setCurrentPage(clampPage(savedPage, totalPages));
+          setCurrentPage(clampPage(savedPage, totalPagesRef.current));
         }
       } catch {
         if (isMounted) {
@@ -68,7 +73,7 @@ export function useBookPageCache(bookId: number | null, totalPages: number) {
     return () => {
       isMounted = false;
     };
-  }, [storageKey, totalPages]);
+  }, [storageKey]);
 
   useEffect(() => {
     setCurrentPage((previous) => clampPage(previous, totalPages));

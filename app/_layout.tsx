@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 import { useEffect } from 'react';
 
 import { useAuth, AuthProvider } from '@/providers/auth-provider';
+import { ReaderPreferencesProvider } from '@/providers/reader-preferences-provider';
 import { AppThemeProvider, useAppTheme } from '@/providers/theme-provider';
 
 function RootNavigator() {
@@ -95,9 +96,11 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <AppThemeProvider>
-        <AuthProvider>
-          <RootNavigator />
-        </AuthProvider>
+        <ReaderPreferencesProvider>
+          <AuthProvider>
+            <RootNavigator />
+          </AuthProvider>
+        </ReaderPreferencesProvider>
       </AppThemeProvider>
     </GestureHandlerRootView>
   );

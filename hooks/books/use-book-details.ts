@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { Book, useBooksApi } from '@/hooks/use-books-api';
+import { BookDetails, useBooksApi } from '@/hooks/use-books-api';
 
 export function useBookDetails(bookId: number | null) {
   const { getBookById } = useBooksApi();
-  const [book, setBook] = useState<Book | null>(null);
+  const [book, setBook] = useState<BookDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

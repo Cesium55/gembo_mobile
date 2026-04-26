@@ -21,6 +21,20 @@ export type Book = {
   content: string;
 };
 
+export type BookChapter = {
+  id: number;
+  title: string;
+  position: number;
+  content: string;
+};
+
+export type BookDetails = {
+  id: number;
+  title: string;
+  author: string;
+  chapters: BookChapter[];
+};
+
 export type CreateBookPayload = {
   title: string;
   author: string;
@@ -146,7 +160,7 @@ export function useBooksApi() {
         throw new Error('Parameter "bookId" must be a positive integer');
       }
 
-      return request<Book>(`/books/${bookId}`, { method: 'GET' });
+      return request<BookDetails>(`/books/${bookId}`, { method: 'GET' });
     },
     [request],
   );
