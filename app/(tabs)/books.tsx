@@ -14,6 +14,11 @@ export default function BooksScreen() {
   const { books, error, isLoading, reload } = useBooksList();
 
   const handleOpenBook = (book: Book) => {
+    console.log('[BooksScreen] navigate:book', {
+      bookId: book.id,
+      title: book.title,
+      author: book.author,
+    });
     router.push({
       pathname: '/books/[bookId]',
       params: { bookId: String(book.id) },

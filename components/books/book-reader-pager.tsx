@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import { FlatList, NativeScrollEvent, NativeSyntheticEvent, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/ui/app-text';
+import { ReaderTheme } from '@/constants/colors';
 import { ReaderPage } from '@/hooks/books/use-book-pagination';
-import { useAppTheme } from '@/providers/theme-provider';
 
 type BookReaderPagerProps = {
   pages: ReaderPage[];
@@ -13,6 +13,7 @@ type BookReaderPagerProps = {
   fontFamily?: string;
   fontSize: number;
   lineHeight: number;
+  theme: ReaderTheme;
 };
 
 export function BookReaderPager({
@@ -23,8 +24,8 @@ export function BookReaderPager({
   fontFamily,
   fontSize,
   lineHeight,
+  theme,
 }: BookReaderPagerProps) {
-  const { theme } = useAppTheme();
   const listRef = useRef<FlatList<ReaderPage>>(null);
 
   const pagerWidth = Math.max(pageWidth, 1);

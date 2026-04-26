@@ -3,8 +3,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppBottomModal } from '@/components/ui/app-bottom-modal';
 import { AppText } from '@/components/ui/app-text';
+import { ReaderTheme } from '@/constants/colors';
 import { PaginatedChapter } from '@/hooks/books/use-book-pagination';
-import { useAppTheme } from '@/providers/theme-provider';
 
 type BookReaderChaptersModalProps = {
   isOpen: boolean;
@@ -12,6 +12,7 @@ type BookReaderChaptersModalProps = {
   currentChapterIndex: number;
   onClose: () => void;
   onSelectChapter: (startPage: number) => void;
+  theme: ReaderTheme;
 };
 
 export function BookReaderChaptersModal({
@@ -20,11 +21,10 @@ export function BookReaderChaptersModal({
   currentChapterIndex,
   onClose,
   onSelectChapter,
+  theme,
 }: BookReaderChaptersModalProps) {
-  const { theme } = useAppTheme();
-
   return (
-    <AppBottomModal isOpen={isOpen} onClose={onClose} title="Главы" scrollable>
+    <AppBottomModal isOpen={isOpen} onClose={onClose} title="Главы" scrollable themeOverride={theme}>
       <View style={styles.modalList}>
         {chapters.length ? (
           chapters.map((chapter, index) => {

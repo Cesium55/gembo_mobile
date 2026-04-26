@@ -15,7 +15,14 @@ export function BookListItem({ book, onPress }: BookListItemProps) {
 
   return (
     <Pressable
-      onPress={() => onPress(book)}
+      onPress={() => {
+        console.log('[BookListItem] press', {
+          bookId: book.id,
+          title: book.title,
+          author: book.author,
+        });
+        onPress(book);
+      }}
       style={({ pressed }) => [
         styles.container,
         {

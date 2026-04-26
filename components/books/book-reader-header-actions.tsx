@@ -1,18 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet } from 'react-native';
 
+import { ReaderTheme } from '@/constants/colors';
 import { AppText } from '@/components/ui/app-text';
-import { useAppTheme } from '@/providers/theme-provider';
 
 type BookReaderHeaderPageButtonProps = {
   currentPage: number;
   totalPages: number;
   onPress: () => void;
+  theme: ReaderTheme;
 };
 
-export function BookReaderHeaderPageButton({ currentPage, totalPages, onPress }: BookReaderHeaderPageButtonProps) {
-  const { theme } = useAppTheme();
-
+export function BookReaderHeaderPageButton({ currentPage, totalPages, onPress, theme }: BookReaderHeaderPageButtonProps) {
   return (
     <Pressable onPress={onPress} style={[styles.pageButton, { backgroundColor: theme.cardColor, borderColor: theme.borderColor }]}>
       <AppText style={{ color: theme.textColor, fontWeight: '700' }}>
@@ -24,11 +23,10 @@ export function BookReaderHeaderPageButton({ currentPage, totalPages, onPress }:
 
 type BookReaderHeaderSettingsButtonProps = {
   onPress: () => void;
+  theme: ReaderTheme;
 };
 
-export function BookReaderHeaderSettingsButton({ onPress }: BookReaderHeaderSettingsButtonProps) {
-  const { theme } = useAppTheme();
-
+export function BookReaderHeaderSettingsButton({ onPress, theme }: BookReaderHeaderSettingsButtonProps) {
   return (
     <Pressable onPress={onPress} style={[styles.iconButton, { backgroundColor: theme.cardColor, borderColor: theme.borderColor }]}>
       <Ionicons name="options-outline" size={18} color={theme.textColor} />

@@ -1,31 +1,37 @@
 import { useMemo, useState } from 'react';
-import { GestureResponderEvent, LayoutChangeEvent, Pressable, StyleSheet, Switch, View } from 'react-native';
+import { GestureResponderEvent, LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
 
 import { AppBottomModal } from '@/components/ui/app-bottom-modal';
 import { AppText } from '@/components/ui/app-text';
+import { ReaderTheme, ReaderThemeName } from '@/constants/colors';
 import {
   MAX_READER_FONT_SIZE,
   MIN_READER_FONT_SIZE,
   ReaderFontFamily,
 } from '@/providers/reader-preferences-provider';
-import { useAppTheme } from '@/providers/theme-provider';
 
 type BookReaderSettingsModalProps = {
   isOpen: boolean;
   fontFamily: ReaderFontFamily;
   fontSize: number;
-  isDark: boolean;
-  themeName: 'light' | 'dark';
+  readerThemeName: ReaderThemeName;
+  readerTheme: ReaderTheme;
   onClose: () => void;
   onFontFamilyChange: (value: ReaderFontFamily) => void;
   onFontSizeChange: (value: number) => void;
-  onToggleTheme: () => void;
+  onReaderThemeChange: (value: ReaderThemeName) => void;
 };
 
 const FONT_FAMILY_OPTIONS: readonly { key: ReaderFontFamily; label: string }[] = [
   { key: 'serif', label: 'Serif' },
   { key: 'sans', label: 'Sans' },
   { key: 'rounded', label: 'Rounded' },
+];
+const READER_THEME_OPTIONS: readonly { key: ReaderThemeName; label: string; description: string }[] = [
+  { key: 'light', label: 'Светлая', description: 'Белый фон' },
+  { key: 'sepia', label: 'Сепия', description: 'Теплый желтоватый тон' },
+  { key: 'paper', label: 'Старая книга', description: 'Состаренная бумага' },
+  { key: 'dark', label: 'Темная', description: 'Ночной режим' },
 ];
 const FONT_SIZE_TICKS = [10, 14, 18, 22, 26, 30];
 
@@ -37,22 +43,23 @@ export function BookReaderSettingsModal({
   isOpen,
   fontFamily,
   fontSize,
-  isDark,
-  themeName,
+  readerThemeName,
+  readerTheme,
   onClose,
   onFontFamilyChange,
   onFontSizeChange,
-  onToggleTheme,
+  onReaderThemeChange,
 }: BookReaderSettingsModalProps) {
-  const { theme } = useAppTheme();
+  const theme = readerTheme;
   const [sliderWidth, setSliderWidth] = useState(0);
+  const fontSizeRange = MAX_READER_FONT_SIZE - MIN_READER_FONT_SIZE;
   const sliderProgress = useMemo(() => {
-    if (MAX_READER_FONT_SIZE === MIN_READER_FONT_SIZE) {
+    if (fontSizeRange <= 0) {
       return 0;
     }
 
-    return (fontSize - MIN_READER_FONT_SIZE) / (MAX_READER_FONT_SIZE - MIN_READER_FONT_SIZE);
-  }, [fontSize]);
+    return (fontSize - MIN_READER_FONT_SIZE) / fontSizeRange;
+  }, [fontSize, fontSizeRange]);
 
   const handleSliderLayout = (event: LayoutChangeEvent) => {
     setSliderWidth(event.nativeEvent.layout.width);
@@ -69,7 +76,7 @@ export function BookReaderSettingsModal({
   };
 
   return (
-    <AppBottomModal isOpen={isOpen} onClose={onClose} title="Настройки чтения" scrollable>
+    <AppBottomModal isOpen={isOpen} onClose={onClose} title="Настройки чтения" scrollable themeOverride={theme}>
       <View style={styles.settingsContent}>
         <View style={[styles.settingsBlock, { backgroundColor: theme.backgroundColor, borderColor: theme.borderColor }]}>
           <AppText style={{ color: theme.mutedTextColor }}>Шрифт</AppText>
@@ -157,38 +164,33 @@ export function BookReaderSettingsModal({
         </View>
 
         <View style={[styles.settingsBlock, { backgroundColor: theme.backgroundColor, borderColor: theme.borderColor }]}>
-          <View style={styles.rowBetween}>
-            <View style={styles.themeCopy}>
-              <AppText style={{ color: theme.textColor, fontWeight: '700' }}>Тема приложения</AppText>
-              <AppText style={{ color: theme.mutedTextColor }}>
-                Переключает тему сразу во всем приложении.
-              </AppText>
-            </View>
-            <Switch value={isDark} onValueChange={onToggleTheme} />
+          <View style={styles.themeCopy}>
+            <AppText style={{ color: theme.textColor, fontWeight: '700' }}>Тема ридера</AppText>
+            <AppText style={{ color: theme.mutedTextColor }}>
+              Меняет только оформление экрана чтения.
+            </AppText>
           </View>
-          <View style={styles.optionRow}>
-            {[
-              { key: 'light', label: 'Светлая' },
-              { key: 'dark', label: 'Темная' },
-            ].map((option) => {
-              const isActive = themeName === option.key;
+          <View style={styles.themeGrid}>
+            {READER_THEME_OPTIONS.map((option) => {
+              const isActive = readerThemeName === option.key;
 
               return (
                 <Pressable
                   key={option.key}
-                  onPress={() => {
-                    if (!isActive) {
-                      onToggleTheme();
-                    }
-                  }}
+                  onPress={() => onReaderThemeChange(option.key)}
                   style={[
-                    styles.optionButton,
+                    styles.themeOption,
                     {
                       backgroundColor: isActive ? theme.primaryColor : theme.cardColor,
-                      borderColor: theme.borderColor,
+                      borderColor: isActive ? theme.primaryColor : theme.borderColor,
                     },
                   ]}>
-                  <AppText style={{ color: isActive ? theme.onPrimaryColor : theme.textColor }}>{option.label}</AppText>
+                  <AppText style={{ color: isActive ? theme.onPrimaryColor : theme.textColor, fontWeight: '700' }}>
+                    {option.label}
+                  </AppText>
+                  <AppText style={{ color: isActive ? theme.onPrimaryColor : theme.mutedTextColor }}>
+                    {option.description}
+                  </AppText>
                 </Pressable>
               );
             })}
@@ -285,7 +287,16 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   themeCopy: {
-    flex: 1,
     gap: 4,
+  },
+  themeGrid: {
+    gap: 10,
+  },
+  themeOption: {
+    borderRadius: 14,
+    borderWidth: 1,
+    gap: 2,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
 });

@@ -2,6 +2,7 @@ import { BottomSheetBackdrop, BottomSheetModal, BottomSheetScrollView, BottomShe
 import { PropsWithChildren, useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { AppTheme } from '@/constants/colors';
 import { useAppTheme } from '@/providers/theme-provider';
 import { AppText } from './app-text';
 
@@ -11,10 +12,20 @@ type AppBottomModalProps = PropsWithChildren<{
   title?: string;
   snapPoint?: `${number}%`;
   scrollable?: boolean;
+  themeOverride?: AppTheme;
 }>;
 
-export function AppBottomModal({ isOpen, onClose, title, snapPoint = '80%', scrollable = false, children }: AppBottomModalProps) {
-  const { theme } = useAppTheme();
+export function AppBottomModal({
+  isOpen,
+  onClose,
+  title,
+  snapPoint = '80%',
+  scrollable = false,
+  themeOverride,
+  children,
+}: AppBottomModalProps) {
+  const { theme: appTheme } = useAppTheme();
+  const theme = themeOverride ?? appTheme;
   const modalRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => [snapPoint], [snapPoint]);
 

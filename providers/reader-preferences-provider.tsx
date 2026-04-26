@@ -1,14 +1,18 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
 
+import { ReaderThemeName } from '@/constants/colors';
+
 type ReaderFontFamily = 'sans' | 'serif' | 'rounded';
 type LegacyReaderFontSize = 'small' | 'medium' | 'large';
 
 type ReaderPreferencesContextValue = {
   fontFamily: ReaderFontFamily;
   fontSize: number;
+  readerThemeName: ReaderThemeName;
   setFontFamily: (value: ReaderFontFamily) => void;
   setFontSize: (value: number) => void;
+  setReaderThemeName: (value: ReaderThemeName) => void;
 };
 
 const STORAGE_KEY = 'reader-preferences:v1';
@@ -21,12 +25,18 @@ const ReaderPreferencesContext = createContext<ReaderPreferencesContextValue | n
 type StoredReaderPreferences = {
   fontFamily?: ReaderFontFamily;
   fontSize?: number | LegacyReaderFontSize;
+  readerThemeName?: ReaderThemeName;
 };
 
 const DEFAULT_FONT_FAMILY: ReaderFontFamily = 'serif';
+const DEFAULT_READER_THEME: ReaderThemeName = 'light';
 
 function isFontFamily(value: unknown): value is ReaderFontFamily {
   return value === 'sans' || value === 'serif' || value === 'rounded';
+}
+
+function isReaderThemeName(value: unknown): value is ReaderThemeName {
+  return value === 'light' || value === 'sepia' || value === 'paper' || value === 'dark';
 }
 
 function normalizeFontSize(value: unknown) {
@@ -49,6 +59,7 @@ function normalizeFontSize(value: unknown) {
 export function ReaderPreferencesProvider({ children }: PropsWithChildren) {
   const [fontFamily, setFontFamily] = useState<ReaderFontFamily>(DEFAULT_FONT_FAMILY);
   const [fontSize, setFontSizeState] = useState(DEFAULT_READER_FONT_SIZE);
+  const [readerThemeName, setReaderThemeName] = useState<ReaderThemeName>(DEFAULT_READER_THEME);
 
   useEffect(() => {
     let isMounted = true;
@@ -63,6 +74,9 @@ export function ReaderPreferencesProvider({ children }: PropsWithChildren) {
         const parsed = JSON.parse(raw) as StoredReaderPreferences;
         if (isFontFamily(parsed.fontFamily)) {
           setFontFamily(parsed.fontFamily);
+        }
+        if (isReaderThemeName(parsed.readerThemeName)) {
+          setReaderThemeName(parsed.readerThemeName);
         }
 
         setFontSizeState(normalizeFontSize(parsed.fontSize));
@@ -79,9 +93,9 @@ export function ReaderPreferencesProvider({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    const payload: StoredReaderPreferences = { fontFamily, fontSize };
+    const payload: StoredReaderPreferences = { fontFamily, fontSize, readerThemeName };
     void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }, [fontFamily, fontSize]);
+  }, [fontFamily, fontSize, readerThemeName]);
 
   const setFontSize = (value: number) => {
     setFontSizeState(normalizeFontSize(value));
@@ -91,10 +105,12 @@ export function ReaderPreferencesProvider({ children }: PropsWithChildren) {
     () => ({
       fontFamily,
       fontSize,
+      readerThemeName,
       setFontFamily,
       setFontSize,
+      setReaderThemeName,
     }),
-    [fontFamily, fontSize],
+    [fontFamily, fontSize, readerThemeName],
   );
 
   return <ReaderPreferencesContext.Provider value={value}>{children}</ReaderPreferencesContext.Provider>;

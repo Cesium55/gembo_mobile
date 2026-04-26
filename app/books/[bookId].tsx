@@ -7,12 +7,12 @@ import { BookReaderHeaderPageButton, BookReaderHeaderSettingsButton } from '@/co
 import { BookReaderPager } from '@/components/books/book-reader-pager';
 import { BookReaderSettingsModal } from '@/components/books/book-reader-settings-modal';
 import { AppText } from '@/components/ui/app-text';
+import { ReaderThemes } from '@/constants/colors';
 import { ScreenContainer } from '@/components/ui/screen-container';
 import { useBookDetails } from '@/hooks/books/use-book-details';
 import { useBookPageCache } from '@/hooks/books/use-book-page-cache';
 import { useBookPagination } from '@/hooks/books/use-book-pagination';
 import { useReaderPreferences } from '@/providers/reader-preferences-provider';
-import { useAppTheme } from '@/providers/theme-provider';
 
 function parseBookId(value?: string | string[]) {
   if (Array.isArray(value)) {
@@ -46,12 +46,12 @@ function getCurrentChapterIndex(currentPage: number, chapterStarts: number[]) {
 }
 
 export default function BookReaderScreen() {
-  const { isDark, theme, themeName, toggleTheme } = useAppTheme();
-  const { fontFamily, fontSize, setFontFamily, setFontSize } = useReaderPreferences();
+  const { fontFamily, fontSize, readerThemeName, setFontFamily, setFontSize, setReaderThemeName } = useReaderPreferences();
   const params = useLocalSearchParams<{ bookId?: string }>();
   const [chaptersModalOpen, setChaptersModalOpen] = useState(false);
   const [readerSettingsOpen, setReaderSettingsOpen] = useState(false);
   const [readerLayout, setReaderLayout] = useState({ width: 0, height: 0 });
+  const readerTheme = ReaderThemes[readerThemeName];
 
   const bookId = parseBookId(params.bookId);
   const { book, isLoading, error, reload } = useBookDetails(bookId);
@@ -72,16 +72,69 @@ export default function BookReaderScreen() {
     [chapters, currentPage],
   );
 
+  useEffect(() => {
+    console.log('[BookReaderScreen] mount');
+
+    return () => {
+      console.log('[BookReaderScreen] unmount');
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log('[BookReaderScreen] route-param-change', {
+      rawBookId: params.bookId,
+      bookId,
+    });
+  }, [bookId, params.bookId]);
+
+  useEffect(() => {
+    console.log('[BookReaderScreen] open', {
+      rawBookId: params.bookId,
+      bookId,
+      readerThemeName,
+      fontFamily,
+      fontSize,
+    });
+  }, [bookId, fontFamily, fontSize, params.bookId, readerThemeName]);
+
+  useEffect(() => {
+    console.log('[BookReaderScreen] state', {
+      bookId,
+      isLoading,
+      isRestoring,
+      hasBook: Boolean(book),
+      error,
+      pageCount: pages.length,
+      chapterCount: chapters.length,
+      currentPage,
+      layout: readerLayout,
+      isReaderReady,
+    });
+  }, [
+    book,
+    bookId,
+    chapters.length,
+    currentPage,
+    error,
+    isLoading,
+    isReaderReady,
+    isRestoring,
+    pages.length,
+    readerLayout,
+  ]);
+
   const handleSelectChapter = (startPage: number) => {
+    console.log('[BookReaderScreen] select-chapter', { bookId, startPage });
     setCurrentPage(startPage);
     setChaptersModalOpen(false);
   };
   const handleReaderLayout = useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
+    console.log('[BookReaderScreen] layout', { bookId, width, height });
     setReaderLayout((previous) =>
       previous.width === width && previous.height === height ? previous : { width, height },
     );
-  }, []);
+  }, [bookId]);
 
   useEffect(() => {
     if (previousFontSizeRef.current === fontSize) {
@@ -99,12 +152,18 @@ export default function BookReaderScreen() {
       pendingPageRatioRef.current = null;
 
       if (nextPage !== currentPage) {
+        console.log('[BookReaderScreen] remap-page-after-font-change', {
+          bookId,
+          currentPage,
+          nextPage,
+          pageCount: pages.length,
+        });
         setCurrentPage(nextPage);
       }
     }
 
     previousPageCountRef.current = pages.length;
-  }, [currentPage, pages.length, setCurrentPage]);
+  }, [bookId, currentPage, pages.length, setCurrentPage]);
 
   return (
     <>
@@ -114,34 +173,41 @@ export default function BookReaderScreen() {
           title: '',
           headerBackTitle: 'Назад',
           headerTitleAlign: 'center',
+          headerStyle: { backgroundColor: readerTheme.cardColor },
+          headerShadowVisible: false,
+          headerTintColor: readerTheme.textColor,
+          headerTitleStyle: { color: readerTheme.textColor },
           headerTitle: () => (
             <View style={styles.headerTitleWrap}>
               <BookReaderHeaderPageButton
                 currentPage={currentPage}
                 totalPages={pages.length}
                 onPress={() => setChaptersModalOpen(true)}
+                theme={readerTheme}
               />
             </View>
           ),
-          headerRight: () => <BookReaderHeaderSettingsButton onPress={() => setReaderSettingsOpen(true)} />,
+          headerRight: () => <BookReaderHeaderSettingsButton onPress={() => setReaderSettingsOpen(true)} theme={readerTheme} />,
         }}
       />
 
-      <ScreenContainer safeAreaEdges={['left', 'right']} contentStyle={styles.readerContent}>
+      <ScreenContainer safeAreaEdges={['left', 'right']} contentStyle={styles.readerContent} themeOverride={readerTheme}>
         {isLoading ? (
           <View style={styles.centered}>
-            <ActivityIndicator size="small" color={theme.primaryColor} />
+            <ActivityIndicator size="small" color={readerTheme.primaryColor} />
           </View>
         ) : error ? (
           <View style={styles.centered}>
             <AppText style={{ color: '#EF4444', textAlign: 'center' }}>{error}</AppText>
-            <Pressable onPress={reload} style={[styles.retryButton, { borderColor: theme.borderColor, backgroundColor: theme.cardColor }]}>
-              <AppText style={{ color: theme.textColor }}>Повторить</AppText>
+            <Pressable
+              onPress={reload}
+              style={[styles.retryButton, { borderColor: readerTheme.borderColor, backgroundColor: readerTheme.cardColor }]}>
+              <AppText style={{ color: readerTheme.textColor }}>Повторить</AppText>
             </Pressable>
           </View>
         ) : book && isRestoring ? (
           <View style={styles.centered}>
-            <ActivityIndicator size="small" color={theme.primaryColor} />
+            <ActivityIndicator size="small" color={readerTheme.primaryColor} />
           </View>
         ) : book ? (
           <View style={styles.readerStage} onLayout={handleReaderLayout}>
@@ -154,16 +220,17 @@ export default function BookReaderScreen() {
                 fontFamily={typography.fontFamily}
                 fontSize={typography.fontSize}
                 lineHeight={typography.lineHeight}
+                theme={readerTheme}
               />
             ) : (
               <View style={styles.centered}>
-                <ActivityIndicator size="small" color={theme.primaryColor} />
+                <ActivityIndicator size="small" color={readerTheme.primaryColor} />
               </View>
             )}
           </View>
         ) : (
           <View style={styles.centered}>
-            <AppText style={{ color: theme.mutedTextColor }}>Книга не найдена</AppText>
+            <AppText style={{ color: readerTheme.mutedTextColor }}>Книга не найдена</AppText>
           </View>
         )}
       </ScreenContainer>
@@ -174,18 +241,19 @@ export default function BookReaderScreen() {
         currentChapterIndex={currentChapterIndex}
         onClose={() => setChaptersModalOpen(false)}
         onSelectChapter={handleSelectChapter}
+        theme={readerTheme}
       />
 
       <BookReaderSettingsModal
         isOpen={readerSettingsOpen}
         fontFamily={fontFamily}
         fontSize={fontSize}
-        isDark={isDark}
-        themeName={themeName}
+        readerThemeName={readerThemeName}
+        readerTheme={readerTheme}
         onClose={() => setReaderSettingsOpen(false)}
         onFontFamilyChange={setFontFamily}
         onFontSizeChange={setFontSize}
-        onToggleTheme={toggleTheme}
+        onReaderThemeChange={setReaderThemeName}
       />
     </>
   );
