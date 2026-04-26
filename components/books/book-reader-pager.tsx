@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FlatList, NativeScrollEvent, NativeSyntheticEvent, StyleSheet, View } from 'react-native';
 
-import { AppText } from '@/components/ui/app-text';
+import { BookReaderPageContent } from '@/components/books/book-reader-page-content';
+import { BookReaderSearchResultsModal } from '@/components/books/book-reader-search-results-modal';
 import { ReaderTheme } from '@/constants/colors';
 import { ReaderPage } from '@/hooks/books/use-book-pagination';
 
@@ -27,6 +28,8 @@ export function BookReaderPager({
   theme,
 }: BookReaderPagerProps) {
   const listRef = useRef<FlatList<ReaderPage>>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const pagerWidth = Math.max(pageWidth, 1);
 
@@ -53,6 +56,16 @@ export function BookReaderPager({
     });
   };
 
+  const handleSearchSelection = (value: string) => {
+    const normalizedQuery = value.trim();
+    if (!normalizedQuery) {
+      return;
+    }
+
+    setSearchQuery(normalizedQuery);
+    setIsSearchOpen(true);
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -72,56 +85,30 @@ export function BookReaderPager({
         onMomentumScrollEnd={handleMomentumEnd}
         onScrollToIndexFailed={handleScrollToIndexFailed}
         renderItem={({ item }) => (
-          <View style={[styles.page, { width: pagerWidth }]}>
-            {item.title ? (
-              <AppText
-                style={[
-                  styles.chapterTitle,
-                  {
-                    color: theme.textColor,
-                    fontFamily,
-                    fontSize,
-                    lineHeight,
-                  },
-                ]}>
-                {item.title}
-              </AppText>
-            ) : null}
-            <AppText
-              style={[
-                styles.pageText,
-                {
-                  color: theme.textColor,
-                  fontFamily,
-                  fontSize,
-                  lineHeight,
-                },
-              ]}>
-              {item.content}
-            </AppText>
-          </View>
+          <BookReaderPageContent
+            content={item.content}
+            fontFamily={fontFamily}
+            fontSize={fontSize}
+            lineHeight={lineHeight}
+            theme={theme}
+            title={item.title}
+            width={pagerWidth}
+            onSearchSelection={handleSearchSelection}
+          />
         )}
+      />
+      <BookReaderSearchResultsModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        query={searchQuery}
+        theme={theme}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  chapterTitle: {
-    fontWeight: '800',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
   container: {
     flex: 1,
-  },
-  page: {
-    flex: 1,
-    paddingRight: 2,
-    paddingTop: 12,
-  },
-  pageText: {
-    includeFontPadding: true,
-    paddingBottom: 8,
   },
 });
